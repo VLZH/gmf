@@ -109,6 +109,11 @@ static char * gmf_get_channel_layout_name(int channels, int layout) {
     return result;
 }
 
+static void set_context_preset(AVCodecContext *cc, char *preset)
+{
+	av_opt_set(cc->priv_data, "preset", preset, 0);
+}
+
 */
 import "C"
 
@@ -326,6 +331,11 @@ func (cc *CodecCtx) IsOpen() bool {
 
 func (cc *CodecCtx) SetProfile(profile int) *CodecCtx {
 	cc.avCodecCtx.profile = C.int(profile)
+	return cc
+}
+
+func (cc *CodecCtx) SetCodecPreset(preset string) *CodecCtx {
+	C.set_context_preset(cc.avCodecCtx, C.CString(preset))
 	return cc
 }
 
