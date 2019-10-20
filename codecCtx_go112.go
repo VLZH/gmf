@@ -109,11 +109,10 @@ static char * gmf_get_channel_layout_name(int channels, int layout) {
     return result;
 }
 
-static void set_context_preset(AVCodecContext *cc, char *preset)
+static void priv_data_opt_set(AVCodecContext *cc, char *name, char *value)
 {
-	av_opt_set(cc->priv_data, "preset", preset, 0);
+	av_opt_set(cc->priv_data, name, value, 0);
 }
-
 */
 import "C"
 
@@ -285,6 +284,10 @@ func (cc *CodecCtx) SetOpt() {
 	C.av_opt_set_int(unsafe.Pointer(cc.avCodecCtx), C.CString("refcounted_frames"), 1, 0)
 }
 
+func (cc *CodecCtx) SetPrivDataOpt(name, value string) {
+	C.priv_data_opt_set(cc.avCodecCtx, C.CString(name), C.CString(value))
+}
+
 func (cc *CodecCtx) Codec() *Codec {
 	return &Codec{avCodec: cc.avCodecCtx.codec}
 }
@@ -335,7 +338,12 @@ func (cc *CodecCtx) SetProfile(profile int) *CodecCtx {
 }
 
 func (cc *CodecCtx) SetCodecPreset(preset string) *CodecCtx {
-	C.set_context_preset(cc.avCodecCtx, C.CString(preset))
+	cc.SetPrivDataOpt("preset", preset)
+	return cc
+}
+
+func (cc *CodecCtx) SetCodecTune(tune string) *CodecCtx {
+	cc.SetPrivDataOpt("tune", tune)
 	return cc
 }
 
@@ -548,7 +556,7 @@ func (cc *CodecCtx) GetChannelLayoutName() string {
 	return str
 }
 
-func (this *CodecCtx) GetDefaultChannelLayout(ac int) int {
+func (cc *CodecCtx) GetDefaultChannelLayout(ac int) int {
 	return int(C.av_get_default_channel_layout(C.int(ac)))
 }
 
